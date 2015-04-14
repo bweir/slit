@@ -1,4 +1,7 @@
+#!/usr/bin/env python
+
 import re, sys, os
+import fnmatch
 
 empty_line       = "^[ \t]*$"
 
@@ -141,15 +144,47 @@ def write_codefile(filename, code_container):
 
     write_container(filename, final)
 
+def scan_directory(dirname):
+    matches = []
+    for root, dirnames, filenames in os.walk(dirname):
+          for filename in fnmatch.filter(filenames, '*.lit'):
+                  matches.append(os.path.join(root, filename))
+
+    return matches
+#    for m in matches:
+#        codefile = os.path.splitext(m)[0]
+#
+#        for e in ['','.md','.html']:
+#            filename = codefile+e
+#
+#            if os.path.isfile(filename):
+#                print filename
+
+
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='A sequential literate processor.')
-    parser.add_argument('filename', metavar='FILE', nargs=1, help='lit file to process')
+    parser.add_argument('filename', metavar='PATH', nargs=1, help='path to lit file to process (dir or file)')
     parser.add_argument('-c','--code', action='store_true', help='build final source file')
     parser.add_argument('-d','--doc', action='store_true', help='build markdown documentation')
+    parser.add_argument('--build-directory', action='store_true', help='scan directory and build every literate file')
 
     args = parser.parse_args()
+
+    filename = args.filename[0]
+
+    files = []
+
+    if os.path.isdir(filename):
+        for f in scan_directory(filename):
+            files.append(f)
+
+    elif os.path.isfile(filename):
+        if not (os.path.splitext(filename)[1] == '.lit'):
+            print "Error: not a lit file!"
+            sys.exit(1)
+        files.append(filename)
 
     if (not args.code) and (not args.doc):
         print "Error: Current selection will do nothing!"
@@ -157,14 +192,14 @@ if __name__ == '__main__':
         sys.exit(1)
 
 
-    filename = args.filename[0]
-    code, doc = process_file(filename)
+    for f in files:
+        code, doc = process_file(f)
 
-    codefile = os.path.splitext(filename)[0]
+        codefile = os.path.splitext(f)[0]
 
-    if args.doc:
-        write_container(codefile+".md",doc)
+        if args.doc:
+            write_container(codefile+".md",doc)
 
-    if args.code:
-        write_codefile(codefile, code["*"])
+        if args.code:
+            write_codefile(codefile, code["*"])
 
