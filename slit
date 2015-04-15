@@ -1,20 +1,30 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import re, sys, os
 import fnmatch
 
-empty_line       = "^[ \t]*$"
+empty_line      = "^[ \t]*$"
 
-macro_syntax     = "<<[ \t]*" \
-                 + "([a-zA-Z][a-zA-Z0-9_]*|[*])" \
-                 + "[ \t]*>>" 
+macro_syntax    = "<<[ \t]*" \
+                + "([a-zA-Z0-9_.]*|[*])" \
+                + "[ \t]*>>" 
 
-macro_end        = "[ \t]*$"
+macro_ident     = "([a-zA-Z0-9_.]*|[*])"
 
-macro_assign = macro_syntax + "="  + macro_end
-macro_value  = macro_syntax +        macro_end
-macro_append = macro_syntax + "\\+=" + macro_end
+macro_end       = "[ \t]*$"
 
+macro_assign    = macro_syntax + "="  + macro_end
+macro_value     = macro_syntax +        macro_end
+macro_append    = macro_syntax + "\\+=" + macro_end
+
+path_syntax     = '([a-zA-Z0-9_.]+)' \
+                + '(\\.[a-zA-Z0-9]+)'
+
+include_syntax  = "^<<[ \t]*" \
+                + path_syntax \
+                + "[ \t]*>>" \
+                + "[ \t]*$"
 
 def error(text, filename, linenum):
     print "Error ("+filename+":"+str(linenum)+"): "+text
@@ -63,6 +73,28 @@ def process_file(filename):
     last_line_empty = False
     linenum = 0
 
+
+    def get_include_container(identifier):
+        print "INCLUDE MACRO", identifier
+
+        include_container = None
+
+        path = re.match('^'+path_syntax+'$', identifier)
+        if (path):
+            include_file = os.path.join(os.path.dirname(filename), identifier)
+            if os.path.isfile(include_file):
+                include_container = open(include_file).readlines()
+            else:
+                abort("Invalid filename in macro reference: "+identifier+"'", filename, linenum)
+        else:
+            try:
+                include_container = code_container[identifier]
+            except KeyError:
+                abort("Invalid macro reference: '"+identifier+"'",filename,linenum)
+
+        return include_container
+
+
     for line in content:
         linenum += 1
 
@@ -85,10 +117,9 @@ def process_file(filename):
                 macro_identifier = assign.group(1)
 
                 code_container[macro_identifier] = []
-                code_container[macro_identifier].append([])
 
                 doc_container.append("\n")
-#                print "MACRO ASSIGN", assign.group(1)
+                print "MACRO ASSIGN", assign.group(1)
 
                 add_line = False
 
@@ -98,31 +129,31 @@ def process_file(filename):
 
                 if not macro_identifier in code_container:
                     code_container[macro_identifier] = []
-                code_container[macro_identifier].append([])
 
                 doc_container.append("\n")
-#                print "MACRO APPEND", append.group(1)
+                print "MACRO APPEND", append.group(1)
 
                 add_line = False
 
 
             elif (value):
-#                print "MACRO REFERENCE", value.group(1)
-                try:
-                    for s in code_container[value.group(1)]:
-                        code_container[macro_identifier][-1].extend(s)
-
-                except KeyError:
-                    abort("Invalid macro reference: '"+value.group(1)+"'",filename,linenum)
-
+                for s in get_include_container(value.group(1)):
+                    code_container[macro_identifier].append((" "*4)+s)
                 add_line = False
 
         else:
+            value  = re.match(macro_value,  line)
+
+            if (value):
+                for s in get_include_container(value.group(1)):
+                    doc_container.append((" "*4)+s)
+                add_line = False
+
             if not (re.match(empty_line, line)):
                 if last_line_empty == True:
                     if indentLevel > 0:
                         try:
-                            code_container[macro_identifier][-1].pop()
+                            code_container[macro_identifier].pop()
                         except IndexError:
                             pass
 
@@ -135,9 +166,9 @@ def process_file(filename):
             doc_container.append(line)
 
             if indentLevel > 0:
-                code_container[macro_identifier][-1].append(line[indentLevel:])
+                code_container[macro_identifier].append(line[indentLevel:])
 
-#        print str(indent),str(indentLevel*"@")+line
+        print str(indent),str(indentLevel*"@")+line
 
         if (re.match(empty_line, line)):
             last_line_empty = True
@@ -153,20 +184,10 @@ def write_container(filename, container):
 
     container = compress_blank_lines(container)
     for l in container:
-#        print l
+        print l
         f.write(l+"\n")
 
     f.close()
-
-
-def write_codefile(filename, code_container):
-
-    final = []
-
-    for c in code_container:
-        final += c
-
-    write_container(filename, final)
 
 def scan_directory(dirname):
     matches = []
@@ -212,12 +233,18 @@ if __name__ == '__main__':
         code, doc = process_file(f)
 
         codefile = os.path.splitext(f)[0]
+        codedir = os.path.dirname(f)
 
         if args.doc:
             write_container(codefile+".md",doc)
 
         if args.code:
             for c in code.keys():
-#                print "\nKEY:",c,"\n"
-                write_codefile(codefile, code[c])
+                path = re.match('^'+path_syntax+'$', c)
+                print "KEY:",c,"\n"+(80*"=")
+                if (path):
+                    write_container(os.path.join(codedir, c), code[c])
+                elif c == '*': 
+                    write_container(codefile, code[c])
+                print (80*"-")
 
