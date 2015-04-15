@@ -9,8 +9,11 @@ macro_syntax     = "<<[ \t]*" \
                  + "([a-zA-Z][a-zA-Z0-9_]*|[*])" \
                  + "[ \t]*>>" 
 
-macro_assignment = macro_syntax + "=[ \t]*$"
-macro_value      = macro_syntax + "[ \t]*$"
+macro_end        = "[ \t]*$"
+
+macro_assign = macro_syntax + "="  + macro_end
+macro_value  = macro_syntax +        macro_end
+macro_append = macro_syntax + "\\+=" + macro_end
 
 
 def error(text, filename, linenum):
@@ -73,22 +76,38 @@ def process_file(filename):
             macro_indent    = "^" \
                             + "[ ]"*indent
 
-            assign = re.match(macro_indent + macro_assignment, line)
-            value  = re.match(macro_indent + macro_value,      line)
+            assign = re.match(macro_indent + macro_assign, line)
+            value  = re.match(macro_indent + macro_value,  line)
+            append = re.match(macro_indent + macro_append, line)
 
             if (assign):
                 indentLevel = indent
                 macro_identifier = assign.group(1)
+
+                code_container[macro_identifier] = []
+                code_container[macro_identifier].append([])
+
+                doc_container.append("\n")
+#                print "MACRO ASSIGN", assign.group(1)
+
+                add_line = False
+
+            elif (append):
+                indentLevel = indent
+                macro_identifier = append.group(1)
 
                 if not macro_identifier in code_container:
                     code_container[macro_identifier] = []
                 code_container[macro_identifier].append([])
 
                 doc_container.append("\n")
+#                print "MACRO APPEND", append.group(1)
 
                 add_line = False
 
+
             elif (value):
+#                print "MACRO REFERENCE", value.group(1)
                 try:
                     for s in code_container[value.group(1)]:
                         code_container[macro_identifier][-1].extend(s)
@@ -102,7 +121,10 @@ def process_file(filename):
             if not (re.match(empty_line, line)):
                 if last_line_empty == True:
                     if indentLevel > 0:
-                        code_container[macro_identifier][-1].pop()
+                        try:
+                            code_container[macro_identifier][-1].pop()
+                        except IndexError:
+                            pass
 
                     indentLevel = 0
 
@@ -114,6 +136,8 @@ def process_file(filename):
 
             if indentLevel > 0:
                 code_container[macro_identifier][-1].append(line[indentLevel:])
+
+#        print str(indent),str(indentLevel*"@")+line
 
         if (re.match(empty_line, line)):
             last_line_empty = True
@@ -147,20 +171,12 @@ def write_codefile(filename, code_container):
 def scan_directory(dirname):
     matches = []
     for root, dirnames, filenames in os.walk(dirname):
-          for filename in fnmatch.filter(filenames, '*.lit'):
-                  matches.append(os.path.join(root, filename))
+        for filename in fnmatch.filter(filenames, '*.lit'):
+            filepath = os.path.join(root, filename)
+            if os.path.isfile(filepath):
+                matches.append(filepath)
 
     return matches
-#    for m in matches:
-#        codefile = os.path.splitext(m)[0]
-#
-#        for e in ['','.md','.html']:
-#            filename = codefile+e
-#
-#            if os.path.isfile(filename):
-#                print filename
-
-
 
 if __name__ == '__main__':
     import argparse
@@ -201,5 +217,7 @@ if __name__ == '__main__':
             write_container(codefile+".md",doc)
 
         if args.code:
-            write_codefile(codefile, code["*"])
+            for c in code.keys():
+#                print "\nKEY:",c,"\n"
+                write_codefile(codefile, code[c])
 
