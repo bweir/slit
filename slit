@@ -156,7 +156,7 @@ def process_file(filename):
 
             elif (value):
                 for s in get_include_container(value.group(1)):
-                    code_container[macro_identifier].append((" "*4)+s)
+                    code_container[macro_identifier].append(s)
                 add_line = False
 
         else:
