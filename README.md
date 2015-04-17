@@ -35,7 +35,7 @@ Here are just some of the unusual features of slit
 
 ## Installing
 
-`lit` is a single python script and has been tested with Python 2.7.
+`slit` is a single python script and has been tested with Python 2.7.
 
 ## Usage
 
