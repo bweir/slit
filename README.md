@@ -13,7 +13,7 @@ slit doesn't work that way. slit doesn't just tell the story of how the program 
 
 In doing so, slit turns conventional literate programming into an unstoppable tool for creating compelling, provably accurate and up-to-date software tutorials.
 
-## Features
+### Features
 
 Here are just some of the unusual features of slit
 
@@ -27,9 +27,15 @@ Here are just some of the unusual features of slit
 
 * Include the output of shell commands into your documentation
 
-## In action
+### Who uses slit?
 
 * slit is at the core of the [LameStation programming tutorials](http://www.lamestation.com/learn/demos/latest/03_maps/01_DrawingMaps.spin.html) (in development).
+
+* The README you are reading right now is generated with `./slit -ds README.lit`.
+
+## Installing
+
+`lit` is a single python script and has been tested with Python 2.7.
 
 ## Usage
 
@@ -118,7 +124,7 @@ Use the shebang macro (`<<#! command >>`) to dump the output of shell commands i
 
 This feature is inherently platform and build environment dependent and will make your tutorial build less portable. Use wisely!
 
-This feature is disable by default. Enable with `-s`.
+This feature is disabled by default. Enable with `-s`.
 
 ### More info
 
@@ -137,3 +143,12 @@ For a complete listing of slit parameters, use `--help`:
       -d, --doc          build markdown documentation
       -s, --shell        enable shell code execution
       --build-directory  scan directory and build every literate file
+
+## Author
+
+slit is created by Brett Weir, and inspired by Connor Osborne's [lit](https://github.com/cdosborn/lit) tool and Donald Knuth, for coming up with literate programming in the first place.
+
+## Bug Reporting
+
+Please report all bugs to the [slit issue tracker](https://github.com/bweir/slit/issues).
+
