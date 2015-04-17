@@ -1,6 +1,8 @@
 This example will show you how to create a living, self-updating "hello world" tutorial with slit.
 
-With slit, you can create tutorials that look like you spent a lot more time writing it than you actually did, and when something changes, you just rerun the tutorial and you're good to go. Imagine how time consuming all of these edits would be if you had to update them whenever your API change, and when something changes, you just rerun the tutorial and you're good to go. Imagine how time consuming all of these edits would be if you had to update them whenever your API changed.
+With slit, you can create tutorials that look like you spent a lot more time writing it than you actually did, and when something changes, you just rerun the tutorial and you're good to go.
+
+Imagine how time consuming all of these edits would be if you had to update them whenever your API changed.
 
 ## Hello World tutorial
 
