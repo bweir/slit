@@ -41,6 +41,14 @@ Eww, oh, no, what happen! Oh, right, `printf` wasn't declared anywhere. Let's ad
 
     #include <stdio.h>
 
+Let's see what the code looks like now:
+
+    #include <stdio.h>
+
+    int main() {
+        printf("Hello world!\n");
+    }
+
 Alright, let's try one last time.
 
     $ gcc hello.c

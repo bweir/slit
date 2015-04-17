@@ -49,6 +49,10 @@ Eww, oh, no, what happen! Oh, right, `printf` wasn't declared anywhere. Let's ad
     << main >>
     <<! hello.c >>
 
+Let's see what the code looks like now:
+
+<< hello.c >>
+
 Alright, let's try one last time.
 
     <<#! gcc hello.c >>
