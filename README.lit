@@ -1,4 +1,3 @@
-
 # slit - *a sequential lit tool*
 
 ## About
@@ -18,13 +17,9 @@ In doing so, slit turns conventional literate programming into an unstoppable to
 Here are just some of the unusual features of slit
 
 * Total control of code and documentation structure
-
 * Carefully document every single step, including wrong turns, backtracking, and revising code
-
 * Include external files in your tutorial, even other slit files
-
 * Generate **working**, complex, multi-file, multi-language program examples from a single tutorial
-
 * Include the output of shell commands into your documentation
 
 ## In action
@@ -45,7 +40,7 @@ slit files should be marked with with `.lit` extension, appended to the regular 
 
 slit works by allow you to assemble code into separate containers, then building your document from them.
 
-Code containers are marked with the `<< blockname >>=` syntax on a line by itself. They must be indented to be accepted as code macros.
+Code containers are marked with the `<< blockname >>=` syntax on a line by itself. They must be indented to be accepted as code macros. 
 
     Here is our hello world example!
 
@@ -67,9 +62,7 @@ The code block will end when the indent level returns to 0.
 There are three core elements that make up slit syntax.
 
 * Macro assignment - `<< NAME >>=`
-
 * Macro append - `<< NAME >>+=`
-
 * Macro value - `<< NAME >>`
 
 #### append macro
@@ -85,9 +78,7 @@ The assignment macro (`<< NAME >>=`) will add code to a new or existing containe
 Contain names can be one of the following
 
 * Named containers, containing alphanumeric characters and underscores, like `codeblock1`, `main_function`.
-
 * File containers, containing a single-word filename with extension, like `filename.txt` (*files with spaces or that reside in a different path are not currently supported*)
-
 * The `*` container, which will create a file named after the top-level slit file with the `.lit` extension removed. So for `hello_world.c.lit`, the `*` container will generate the `hello_world.c` code file.
 
 The top-level documentation file is always generated at the source file name with a `.md` extension, so `hello_world.c.lit` will generate `hello_world.c.md`
@@ -109,12 +100,7 @@ Use the `#include` directive to organize a single tutorial into multiple files.
 
 Use the shebang macro (`<<#! command >>`) to dump the output of shell commands into your tutorial.
 
-    test/
-    ├── bacon
-    ├── chicken
-    └── turkey
-
-    0 directories, 3 files
+    <<#! tree test/ >>
 
 This feature is inherently platform and build environment dependent and will make your tutorial build less portable. Use wisely!
 
@@ -124,16 +110,4 @@ This feature is disable by default. Enable with `-s`.
 
 For a complete listing of slit parameters, use `--help`:
 
-    usage: slit [-h] [-c] [-d] [-s] [--build-directory] PATH
-
-    A sequential literate processor.
-
-    positional arguments:
-      PATH               path to lit file to process (dir or file)
-
-    optional arguments:
-      -h, --help         show this help message and exit
-      -c, --code         build final source file
-      -d, --doc          build markdown documentation
-      -s, --shell        enable shell code execution
-      --build-directory  scan directory and build every literate file
+    <<#! ./slit --help >>

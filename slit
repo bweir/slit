@@ -3,27 +3,29 @@
 
 import re, sys, os
 import fnmatch
+import subprocess
 
-empty_line      = "^[ \t]*$"
+re_empty_line       = "^[ \t]*$"
+re_eatline          = "[ \t]*$"
 
-macro_syntax    = "<<[ \t]*" \
-                + "([a-zA-Z0-9_.]*|[*])" \
-                + "[ \t]*>>" 
+re_macro_start      = "<<[ \t]*"
+re_macro_end        = "[ \t]*>>" 
 
-macro_ident     = "([a-zA-Z0-9_.]*|[*])"
+re_identifier       = "([a-zA-Z0-9_.]*|[*])"
+re_path             = '([a-zA-Z0-9_.]+)' \
+                    + '(\\.[a-zA-Z0-9]+)'
+re_command          = "!\"(.*?)\""
 
-macro_end       = "[ \t]*$"
+re_macro            = re_macro_start + re_identifier + re_macro_end
+re_shell            = "<<#![ \t]*(.*?)" + re_macro_end
 
-macro_assign    = macro_syntax + "="  + macro_end
-macro_value     = macro_syntax +        macro_end
-macro_append    = macro_syntax + "\\+=" + macro_end
+re_macro_assign     = re_macro + "="    + re_eatline
+re_macro_value      = re_macro +          re_eatline
+re_macro_append     = re_macro + "\\+=" + re_eatline
 
-path_syntax     = '([a-zA-Z0-9_.]+)' \
-                + '(\\.[a-zA-Z0-9]+)'
-
-include_syntax  = '^#include[ \t]*"' \
-                + path_syntax \
-                + '"[ \t]*$'
+re_include          = "^#include[ \t]*\"" \
+                    + re_path \
+                    + "\"[ \t]*$"
 
 def error(text, filename, linenum):
     print "Error ("+filename+":"+str(linenum)+"): "+text
@@ -43,7 +45,7 @@ def compress_blank_lines(container):
 
     for line in container:
         line = line.rstrip()
-        if (re.match(empty_line, line)):
+        if (re.match(re_empty_line, line)):
             if last_line_empty == True:
                 pass
             else:
@@ -63,7 +65,7 @@ def preprocess_includes(container, filename):
     newcontainer= []
     for line in container:
         linenum += 1
-        value  = re.match(include_syntax,  line)
+        value  = re.match(re_include,  line)
         if (value):
             include_file = os.path.join(os.path.dirname(filename),value.group(1)+value.group(2))
             if os.path.isfile(include_file):
@@ -77,7 +79,7 @@ def preprocess_includes(container, filename):
     return newcontainer
 
 
-def process_file(filename):
+def process_file(filename, shell_enabled=False):
     code_container = {}
     code_container["*"] = []
 
@@ -93,7 +95,7 @@ def process_file(filename):
 
         include_container = None
 
-        path = re.match('^'+path_syntax+'$', identifier)
+        path = re.match('^'+re_path+'$', identifier)
         if (path):
             include_file = os.path.join(os.path.dirname(filename), identifier)
             if os.path.isfile(include_file):
@@ -123,12 +125,12 @@ def process_file(filename):
 
         if indent > 0:
 
-            macro_indent    = "^" \
-                            + "[ ]"*indent
+            re_indent = "^" + "[ ]"*indent
 
-            assign = re.match(macro_indent + macro_assign, line)
-            value  = re.match(macro_indent + macro_value,  line)
-            append = re.match(macro_indent + macro_append, line)
+            assign = re.match(re_indent + re_macro_assign, line)
+            value  = re.match(re_indent + re_macro_value,  line)
+            append = re.match(re_indent + re_macro_append, line)
+            shell  = re.match(re_indent + re_shell, line)
 
             if (assign):
                 indentLevel = indent
@@ -159,15 +161,23 @@ def process_file(filename):
                     code_container[macro_identifier].append(s)
                 add_line = False
 
+            elif (shell):
+                if shell_enabled:
+                    out = subprocess.check_output(shell.group(1),shell=True)
+                    for s in out.splitlines():
+                        doc_container.append((" "*indent)+s)
+
+                add_line = False
+
         else:
-            value  = re.match(macro_value,  line)
+            value  = re.match(re_macro_value,  line)
 
             if (value):
                 for s in get_include_container(value.group(1)):
                     doc_container.append((" "*4)+s)
                 add_line = False
 
-            if not (re.match(empty_line, line)):
+            if not (re.match(re_empty_line, line)):
                 if last_line_empty == True:
                     if indentLevel > 0:
                         try:
@@ -187,7 +197,7 @@ def process_file(filename):
 
 #        print str(indent),str(indentLevel*"@")+line
 
-        if (re.match(empty_line, line)):
+        if (re.match(re_empty_line, line)):
             last_line_empty = True
         else:
             last_line_empty = False
@@ -222,6 +232,7 @@ if __name__ == '__main__':
     parser.add_argument('filename', metavar='PATH', nargs=1, help='path to lit file to process (dir or file)')
     parser.add_argument('-c','--code', action='store_true', help='build final source file')
     parser.add_argument('-d','--doc', action='store_true', help='build markdown documentation')
+    parser.add_argument('-s','--shell', action='store_true', help='enable shell code execution')
     parser.add_argument('--build-directory', action='store_true', help='scan directory and build every literate file')
 
     args = parser.parse_args()
@@ -245,9 +256,14 @@ if __name__ == '__main__':
         print "Add '-c' to generate code or '-d' for documentation"
         sys.exit(1)
 
+    shell_enabled=False
+
+    if (args.shell):
+        shell_enabled=True
+
 
     for f in files:
-        code, doc = process_file(f)
+        code, doc = process_file(f, shell_enabled)
 
         codefile = os.path.splitext(f)[0]
         codedir = os.path.dirname(f)
@@ -257,7 +273,7 @@ if __name__ == '__main__':
 
         if args.code:
             for c in code.keys():
-                path = re.match('^'+path_syntax+'$', c)
+                path = re.match('^'+re_path+'$', c)
 #                print "KEY:",c,"\n"+(80*"=")
                 if (path):
                     write_container(os.path.join(codedir, c), code[c])
