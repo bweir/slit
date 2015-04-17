@@ -18,6 +18,7 @@ re_command          = "!\"(.*?)\""
 
 re_macro            = re_macro_start + re_identifier + re_macro_end
 re_shell            = "<<#![ \t]*(.*?)" + re_macro_end
+re_write            = "<<![ \t]*(.*?)" + re_macro_end
 
 re_macro_assign     = re_macro + "="    + re_eatline
 re_macro_value      = re_macro +          re_eatline
@@ -131,6 +132,7 @@ def process_file(filename, shell_enabled=False):
             value  = re.match(re_indent + re_macro_value,  line)
             append = re.match(re_indent + re_macro_append, line)
             shell  = re.match(re_indent + re_shell, line)
+            write  = re.match(re_indent + re_write, line)
 
             if (assign):
                 indentLevel = indent
@@ -162,10 +164,29 @@ def process_file(filename, shell_enabled=False):
                 add_line = False
 
             elif (shell):
+                doc_container.append((" "*indent)+"$ "+shell.group(1))
+
                 if shell_enabled:
-                    out = subprocess.check_output(shell.group(1),shell=True)
+                    out = ""
+                    try:
+                        out = subprocess.check_output(shell.group(1),
+                                stderr=subprocess.STDOUT,
+                                shell=True)
+                    except subprocess.CalledProcessError as e:
+                        error("Command failed: '"+shell.group(1)+"'",filename, linenum)
+                        out = e.output
+
                     for s in out.splitlines():
                         doc_container.append((" "*indent)+s)
+
+                add_line = False
+
+            elif (write):
+                if write.group(1) in code_container:
+                    write_container(os.path.join(os.path.dirname(filename), write.group(1)),
+                            code_container[write.group(1)])
+                else:
+                    abort("Write container is empty: "+write.group(1), filename, linenum)
 
                 add_line = False
 

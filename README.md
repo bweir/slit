@@ -1,31 +1,23 @@
 
-# slit - *a sequential lit tool*
+# slit - *sequential lit*
 
 ## About
 
-slit is a literate programming tool that places tutorial creation front and center. Now you can write tutorials that will generate examples that your students can run, but explain every single step along the way.
+slit, or *sequential lit*, is a literate programming tool for creating compelling, accurate software tutorials with minimal effort.
 
-slit is made possible by the magic of literate programming, where code and documentation are intermingled into a single meta-form, from which both code and documentation can be generated.
+slit borrows from the school of literate programming, where programs are generated from their own documentation. However, where other tools focus on *what* a program is, slit focuses on *how* a program is written, and provides a richer syntax for expressing the *sequence* of a program's creation from start to finish.
 
-However, literate programming traditionally emphasizes understanding the program in its current form: as a finished product.
-
-slit doesn't work that way. slit doesn't just tell the story of how the program works; it tells the story of how the program came to be, by providing a much richer way to express the *history* of a program than traditional tools do.
-
-In doing so, slit turns conventional literate programming into an unstoppable tool for creating compelling, provably accurate and up-to-date software tutorials.
+In doing so, slit turns literate programming into an unstoppable tool for creating compelling, provably accurate programming tutorials.
 
 ### Features
 
-Here are just some of the unusual features of slit
+* Total control of code and documentation structure *in time*
 
-* Total control of code and documentation structure
-
-* Carefully document every single step, including wrong turns, backtracking, and revising code
-
-* Include external files in your tutorial, even other slit files
+* Carefully document every single step, including wrong turns, backtracking, and extending existing code
 
 * Generate **working**, complex, multi-file, multi-language program examples from a single tutorial
 
-* Include the output of shell commands into your documentation
+* Output shell commands directly into your documentation to show the progression of a program
 
 ### Who uses slit?
 
@@ -109,12 +101,15 @@ Use the `#include` directive to organize a single tutorial into multiple files.
     #include "gfx_cave.lit"
     #include "conclusion.md"
 
-### Shell code
+### Shell commands
 
-**WARNING: this WILL allow tutorials to execute code on your system. Use with caution.**
+**WARNING: this WILL allow tutorials to execute commands directly on your system. Use with caution.**
 
-Use the shebang macro (`<<#! command >>`) to dump the output of shell commands into your tutorial.
+Use the shell macro (`<<#! command >>`) to dump the output of shell commands into your tutorial.
 
+Watch the output of the `<<#! tree test/ >>` command.
+
+    $ tree test/
     test/
     ├── bacon
     ├── chicken
@@ -130,6 +125,7 @@ This feature is disabled by default. Enable with `-s`.
 
 For a complete listing of slit parameters, use `--help`:
 
+    $ ./slit --help
     usage: slit [-h] [-c] [-d] [-s] [--build-directory] PATH
 
     A sequential literate processor.
