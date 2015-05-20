@@ -247,18 +247,37 @@ def scan_directory(dirname):
 
     return matches
 
+def convert_files_to_lit(files):
+    for f in files:
+        if os.path.isfile(f+".lit"):
+            print "Error: .lit file already exists!:",f+".lit"
+            sys.exit(1)
+
+        g = open(f+".lit","w")
+        g.write("    << * >>="+"\n")
+
+        for line in open(f).readlines():
+            g.write("    "+line)
+
+        g.close()
+
+
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description='A sequential literate processor.')
-    parser.add_argument('filename', metavar='PATH', nargs=1, help='path to lit file to process (dir or file)')
+    parser.add_argument('filename', metavar='PATH', nargs='+', help='path to lit file to process (dir or file)')
     parser.add_argument('-s','--shell', action='store_true', help='enable shell code execution')
-    parser.add_argument('-l','--lit', action='store_true', help='create lit file from source')
+    parser.add_argument('-c','--convert', action='store_true', help='create lit file from source')
 
     args = parser.parse_args()
 
-    filename = args.filename[0]
+
+    if args.convert:
+        convert_files_to_lit(args.filename)
+        sys.exit(1)
 
     files = []
+    filename = args.filename[0]
 
     if os.path.isdir(filename):
         for f in scan_directory(filename):
@@ -272,22 +291,6 @@ if __name__ == '__main__':
         files.append(filename)
 
     shell_enabled=False
-
-    if (args.lit):
-        for f in files:
-            if os.path.isfile(f+".lit"):
-                print "Error: .lit file already exists!"
-                sys.exit(1)
-
-            g = open(f+".lit","w")
-            g.write("    << * >>="+"\n")
-
-            for line in open(f).readlines():
-                g.write("    "+line)
-
-            g.close()
-
-        sys.exit()
 
     if (args.shell):
         shell_enabled=True
