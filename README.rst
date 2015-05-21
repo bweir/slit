@@ -38,7 +38,7 @@ Who uses slit?
    (in development).
 
 -  The README you are reading right now is generated with
-   ``./slit -ds README.lit``.
+   ``./slit -s README.lit``.
 
 Installing
 ----------
@@ -183,19 +183,17 @@ For a complete listing of slit parameters, use ``--help``:
 ::
 
     $ ./slit --help
-    usage: slit [-h] [-c] [-d] [-s] [--build-directory] PATH
+    usage: slit [-h] [-s] [-c] PATH [PATH ...]
 
     A sequential literate processor.
 
     positional arguments:
-      PATH               path to lit file to process (dir or file)
+      PATH           path to lit file to process (dir or file)
 
     optional arguments:
-      -h, --help         show this help message and exit
-      -c, --code         build final source file
-      -d, --doc          build markdown documentation
-      -s, --shell        enable shell code execution
-      --build-directory  scan directory and build every literate file
+      -h, --help     show this help message and exit
+      -s, --shell    enable shell code execution
+      -c, --convert  create lit file from source
 
 Author
 ------

@@ -18,7 +18,7 @@ In doing so, slit turns literate programming into an unstoppable tool for creati
 ### Who uses slit?
 
 * slit is at the core of the [LameStation programming tutorials](http://www.lamestation.com/learn/demos/latest/03_maps/01_DrawingMaps.spin.html) (in development).
-* The README you are reading right now is generated with `./slit -ds README.lit`.
+* The README you are reading right now is generated with `./slit -s README.lit`.
 
 ## Installing
 
