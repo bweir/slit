@@ -18,10 +18,14 @@ The absolute most basic C program you can possibly make is an empty program.
 Now compile your program with `gcc`.
 
     $ gcc hello.c
+    gcc: error: hello.c: No such file or directory
+    gcc: fatal error: no input files
+    compilation terminated.
 
 Hey, it compiled! It will create an executable at `./a.out`. Let's run it!
 
     $ ./a.out
+    /bin/sh: 1: ./a.out: not found
 
 Nothing! That's right, absolutely nothing. it doesn't do anything, but the minimum requirement of having a `main()` function is satisfied.
 
@@ -34,10 +38,9 @@ How wonderful. So let's do something more interesting. Let's make one of those `
 Now compile your program again with `gcc`.
 
     $ gcc hello.c
-    hello.c: In function ‘main’:
-    hello.c:2:5: warning: incompatible implicit declaration of built-in function ‘printf’ [enabled by default]
-         printf("Hello world!\n");
-         ^
+    gcc: error: hello.c: No such file or directory
+    gcc: fatal error: no input files
+    compilation terminated.
 
 Eww, oh, no, what happen! Oh, right, `printf` wasn't declared anywhere. Let's add it at the beginning of the file.
 
@@ -54,11 +57,14 @@ Let's see what the code looks like now:
 Alright, let's try one last time.
 
     $ gcc hello.c
+    gcc: error: hello.c: No such file or directory
+    gcc: fatal error: no input files
+    compilation terminated.
 
 Success! No more errors!
 
     $ ./a.out
-    Hello world!
+    /bin/sh: 1: ./a.out: not found
 
 Look's like we done good.
 

@@ -228,6 +228,11 @@ def process_file(filename, shell_enabled=False):
 
 def write_container(filename, container):
 
+    if not container:
+        return
+    else:
+        print "%10i  %s" % (len(container),filename)
+
     f = open(filename,"w")
 
     container = compress_blank_lines(container)
@@ -267,7 +272,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A sequential literate processor.')
     parser.add_argument('filename', metavar='PATH', nargs='+', help='path to lit file to process (dir or file)')
     parser.add_argument('-s','--shell', action='store_true', help='enable shell code execution')
-    parser.add_argument('-c','--convert', action='store_true', help='create lit file from source')
+    parser.add_argument('-c','--convert', action='store_true', default=False, help='create lit file from source')
 
     args = parser.parse_args()
 
@@ -284,7 +289,7 @@ if __name__ == '__main__':
             files.append(f)
 
     elif os.path.isfile(filename):
-        if not (args.lit):
+        if not (args.convert):
             if not (os.path.splitext(filename)[1] == '.lit'):
                 print "Error: not a lit file!"
                 sys.exit(1)
