@@ -159,6 +159,8 @@ def process_file(filename, shell_enabled=False):
 
 
             elif (value):
+                if macro_identifier == value.group(1):
+                    abort("circular dependency!: "+line,filename, linenum)
                 for s in get_include_container(value.group(1)):
                     code_container[macro_identifier].append(s)
                 add_line = False
